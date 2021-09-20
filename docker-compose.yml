@@ -1,0 +1,52 @@
+version: '3.7'
+
+services:
+  mysql:  
+    image: mysql:5.7
+    container_name: pkg_creator_mysql
+    hostname: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
+      - MYSQL_DATABASE=pkg_creator
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:33069:3306
+    volumes:
+      - mysql-data:/var/lib/mysql
+    secrets:
+      - db_root_password
+      - db_password
+
+  app:
+    build: .
+    container_name: pkg_creator_app
+    hostname: app
+    restart: unless-stopped
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - "8089:80"
+    depends_on:
+      - mysql
+
+#  npm:
+#    image: node:10.2
+#    container_name: pkg_creator_npm
+#    volumes:
+#    - ./src:/var/www/html
+#    working_dir: /var/www/html
+#    entrypoint: ['npm']
+
+secrets:
+  db_root_password:
+    file: db_root_password.txt
+  db_password:
+    file: db_password.txt
+
+volumes:
+  mysql-data:
+
+networks:
+  default:
